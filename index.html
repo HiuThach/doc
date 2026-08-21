@@ -1,1 +1,557 @@
+<!DOCTYPE html>
+<html lang="vi">
 
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>Camera đọc chữ</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    background: #000;
+
+    font-family: Arial, sans-serif;
+
+    overflow: hidden;
+}
+
+
+/* CAMERA */
+
+#camera {
+
+    width: 100vw;
+
+    height: 100vh;
+
+    object-fit: cover;
+
+    display: none;
+}
+
+
+#canvas {
+
+    display: none;
+}
+
+
+/* NÚT CHỤP */
+
+#cameraBtn {
+
+    position: fixed;
+
+    bottom: 25px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 75px;
+
+    height: 75px;
+
+    border-radius: 50%;
+
+    background: #e53935;
+
+    border: 5px solid white;
+
+    font-size: 30px;
+
+    z-index: 20;
+
+    cursor: pointer;
+}
+
+
+/* KHU VỰC KẾT QUẢ */
+
+#result {
+
+    position: fixed;
+
+    top: 20px;
+
+    left: 10px;
+
+    right: 10px;
+
+    max-height: calc(100vh - 130px);
+
+    overflow-y: auto;
+
+    z-index: 10;
+}
+
+
+/* MỖI ĐOẠN */
+
+.textBox {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    background: rgba(0,0,0,0.75);
+
+    color: white;
+
+    padding: 12px;
+
+    margin-bottom: 10px;
+
+    border-radius: 12px;
+
+    font-size: 19px;
+
+    line-height: 1.5;
+}
+
+
+/* CHỮ */
+
+.textContent {
+
+    flex: 1;
+
+    word-break: break-word;
+}
+
+
+/* NÚT LOA */
+
+.soundBtn {
+
+    width: 50px;
+
+    height: 50px;
+
+    flex-shrink: 0;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: white;
+
+    font-size: 23px;
+
+    cursor: pointer;
+}
+
+
+/* ĐANG XỬ LÝ */
+
+#loading {
+
+    position: fixed;
+
+    top: 50%;
+
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    color: white;
+
+    background: rgba(0,0,0,0.8);
+
+    padding: 20px;
+
+    border-radius: 12px;
+
+    font-size: 18px;
+
+    display: none;
+
+    z-index: 30;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- CAMERA -->
+
+<video
+    id="camera"
+    autoplay
+    playsinline
+></video>
+
+
+<!-- CANVAS -->
+
+<canvas id="canvas"></canvas>
+
+
+<!-- KẾT QUẢ -->
+
+<div id="result"></div>
+
+
+<!-- LOADING -->
+
+<div id="loading">
+    ⏳ Đang nhận diện chữ...
+</div>
+
+
+<!-- NÚT CHỤP -->
+
+<button id="cameraBtn">
+    📷
+</button>
+
+
+<script>
+
+
+const camera =
+    document.getElementById("camera");
+
+
+const canvas =
+    document.getElementById("canvas");
+
+
+const cameraBtn =
+    document.getElementById("cameraBtn");
+
+
+const result =
+    document.getElementById("result");
+
+
+const loading =
+    document.getElementById("loading");
+
+
+let stream = null;
+
+
+/* ======================================
+   MỞ CAMERA
+====================================== */
+
+cameraBtn.onclick = async () => {
+
+
+    /* CHƯA MỞ CAMERA */
+
+    if (!stream) {
+
+        try {
+
+            stream =
+                await navigator.mediaDevices
+                .getUserMedia({
+
+                    video: {
+
+                        facingMode:
+                            "environment"
+
+                    },
+
+                    audio: false
+
+                });
+
+
+            camera.srcObject =
+                stream;
+
+
+            camera.style.display =
+                "block";
+
+
+        }
+
+        catch (error) {
+
+            alert(
+                "Không thể mở camera.\n" +
+                "Hãy cho phép quyền camera."
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    /* ==================================
+       CHỤP ẢNH
+    ================================== */
+
+
+    canvas.width =
+        camera.videoWidth;
+
+
+    canvas.height =
+        camera.videoHeight;
+
+
+    const ctx =
+        canvas.getContext("2d");
+
+
+    ctx.drawImage(
+
+        camera,
+
+        0,
+
+        0,
+
+        canvas.width,
+
+        canvas.height
+
+    );
+
+
+    const image =
+        canvas.toDataURL(
+            "image/jpeg",
+            0.95
+        );
+
+
+    /* XÓA KẾT QUẢ CŨ */
+
+    result.innerHTML =
+        "";
+
+
+    loading.style.display =
+        "block";
+
+
+    /* ==================================
+       OCR
+    ================================== */
+
+
+    try {
+
+        const worker =
+            await Tesseract.createWorker(
+                "vie"
+            );
+
+
+        const output =
+            await worker.recognize(
+                image
+            );
+
+
+        await worker.terminate();
+
+
+        loading.style.display =
+            "none";
+
+
+        /* ==================================
+           LẤY CÁC DÒNG CHỮ
+        ================================== */
+
+
+        const lines =
+            output.data.lines;
+
+
+        if (
+            !lines ||
+            lines.length === 0
+        ) {
+
+            result.innerHTML = `
+                <div class="textBox">
+                    Không nhận diện được chữ.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        /* ==================================
+           TẠO TỪNG ĐOẠN
+        ================================== */
+
+
+        lines.forEach(line => {
+
+
+            const text =
+                line.text.trim();
+
+
+            if (!text) return;
+
+
+            /* TẠO BOX */
+
+            const box =
+                document.createElement(
+                    "div"
+                );
+
+
+            box.className =
+                "textBox";
+
+
+            /* CHỮ */
+
+            const textContent =
+                document.createElement(
+                    "div"
+                );
+
+
+            textContent.className =
+                "textContent";
+
+
+            textContent.innerText =
+                text;
+
+
+            /* LOA */
+
+            const soundBtn =
+                document.createElement(
+                    "button"
+                );
+
+
+            soundBtn.className =
+                "soundBtn";
+
+
+            soundBtn.innerText =
+                "🔊";
+
+
+            /* ==================================
+               BẤM LOA
+            ================================== */
+
+            soundBtn.onclick = () => {
+
+
+                /* DỪNG GIỌNG ĐANG ĐỌC */
+
+                speechSynthesis.cancel();
+
+
+                /* TẠO GIỌNG */
+
+                const speech =
+                    new SpeechSynthesisUtterance(
+                        text
+                    );
+
+
+                /* LUÔN ĐỌC TIẾNG VIỆT */
+
+                speech.lang =
+                    "vi-VN";
+
+
+                speech.rate =
+                    0.9;
+
+
+                speech.pitch =
+                    1;
+
+
+                /* ĐỌC */
+
+                speechSynthesis.speak(
+                    speech
+                );
+
+            };
+
+
+            /* GHÉP */
+
+            box.appendChild(
+                textContent
+            );
+
+
+            box.appendChild(
+                soundBtn
+            );
+
+
+            result.appendChild(
+                box
+            );
+
+        });
+
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+
+        loading.style.display =
+            "none";
+
+
+        result.innerHTML = `
+            <div class="textBox">
+                ❌ Không thể nhận diện chữ.
+            </div>
+        `;
+
+    }
+
+};
+
+</script>
+
+</body>
+
+</html>
