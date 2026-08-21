@@ -22,18 +22,23 @@
 
 html,
 body {
+
     margin: 0;
+
     width: 100%;
     height: 100%;
+
     overflow: hidden;
+
     background: #000;
+
     font-family: Arial, sans-serif;
 }
 
 
-/* =========================
+/* =====================================
    CAMERA
-========================= */
+===================================== */
 
 #camera {
 
@@ -52,40 +57,107 @@ body {
 }
 
 
-/* =========================
-   ẢNH SAU KHI CHỤP
-========================= */
+/* =====================================
+   KHU VỰC ẢNH ĐÃ CHỤP
+===================================== */
 
-#photo {
+#photoArea {
 
     position: fixed;
 
     inset: 0;
+
+    display: none;
+
+    background: #000;
+}
+
+
+/* ẢNH */
+
+#photo {
+
+    position: absolute;
 
     width: 100%;
     height: 100%;
 
     object-fit: contain;
 
-    display: none;
+    left: 0;
+    top: 0;
+}
 
-    background: #000;
+
+/* =====================================
+   VÙNG CHỮ
+===================================== */
+
+.textHighlight {
+
+    position: absolute;
+
+    border: 3px solid #00ff55;
+
+    background: rgba(0,255,85,0.12);
+
+    border-radius: 5px;
+
+    pointer-events: none;
+
+    z-index: 20;
+
+    transition:
+        background 0.2s,
+        border-color 0.2s;
+}
+
+
+/* ĐANG ĐỌC */
+
+.textHighlight.reading {
+
+    background: rgba(255,215,0,0.45);
+
+    border-color: #ffd700;
 
 }
 
 
-/* =========================
-   CANVAS ẨN
-========================= */
+/* =====================================
+   NÚT LOA
+===================================== */
 
-#canvas {
-    display: none;
+.soundBtn {
+
+    position: absolute;
+
+    width: 48px;
+    height: 48px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: white;
+
+    box-shadow:
+        0 2px 10px rgba(0,0,0,0.6);
+
+    font-size: 23px;
+
+    z-index: 40;
+
+    cursor: pointer;
+
+    padding: 0;
+
 }
 
 
-/* =========================
+/* =====================================
    NÚT CHỤP
-========================= */
+===================================== */
 
 #cameraBtn {
 
@@ -98,7 +170,6 @@ body {
     transform: translateX(-50%);
 
     width: 75px;
-
     height: 75px;
 
     border-radius: 50%;
@@ -118,40 +189,44 @@ body {
 }
 
 
-/* =========================
-   NÚT LOA TRÊN ẢNH
-========================= */
+/* =====================================
+   NÚT QUAY LẠI
+===================================== */
 
-.soundBtn {
+#backBtn {
 
     position: fixed;
 
-    width: 48px;
+    top: 20px;
 
-    height: 48px;
+    left: 20px;
+
+    padding: 12px 18px;
 
     border: none;
 
-    border-radius: 50%;
+    border-radius: 12px;
 
-    background: rgba(255,255,255,0.95);
+    background: rgba(0,0,0,0.75);
 
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    color: white;
 
-    font-size: 23px;
+    font-size: 17px;
 
-    z-index: 50;
+    font-weight: bold;
+
+    z-index: 100;
+
+    display: none;
 
     cursor: pointer;
-
-    padding: 0;
 
 }
 
 
-/* =========================
-   ĐANG XỬ LÝ
-========================= */
+/* =====================================
+   LOADING
+===================================== */
 
 #loading {
 
@@ -163,7 +238,7 @@ body {
 
     transform: translate(-50%, -50%);
 
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
 
     color: white;
 
@@ -180,29 +255,13 @@ body {
 }
 
 
-/* =========================
-   KHUNG CHỨA LOA
-========================= */
+/* =====================================
+   ẨN CANVAS
+===================================== */
 
-#buttons {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 50;
-}
+#canvas {
 
-.soundBtn {
-    pointer-events: auto;
-}
-
-
-/* =========================
-   HIỆU ỨNG NÚT LOA
-========================= */
-
-.soundBtn:active {
-
-    transform: scale(0.9);
+    display: none;
 
 }
 
@@ -214,7 +273,9 @@ body {
 <body>
 
 
-<!-- CAMERA -->
+<!-- ==================================
+     CAMERA
+================================== -->
 
 <video
     id="camera"
@@ -223,12 +284,18 @@ body {
 ></video>
 
 
-<!-- ẢNH ĐÃ CHỤP -->
+<!-- ==================================
+     ẢNH ĐÃ CHỤP
+================================== -->
 
-<img
-    id="photo"
-    alt="Ảnh đã chụp"
->
+<div id="photoArea">
+
+    <img
+        id="photo"
+        alt="Ảnh đã chụp"
+    >
+
+</div>
 
 
 <!-- CANVAS -->
@@ -236,51 +303,86 @@ body {
 <canvas id="canvas"></canvas>
 
 
-<!-- NƠI CHỨA CÁC NÚT LOA -->
-
-<div id="buttons"></div>
-
-
-<!-- LOADING -->
+<!-- ==================================
+     LOADING
+================================== -->
 
 <div id="loading">
     ⏳ Đang nhận diện chữ...
 </div>
 
 
-<!-- NÚT CHỤP -->
+<!-- ==================================
+     NÚT QUAY LẠI
+================================== -->
+
+<button id="backBtn">
+    ← Quay lại
+</button>
+
+
+<!-- ==================================
+     NÚT CHỤP
+================================== -->
 
 <button id="cameraBtn">
     📷
 </button>
 
 
+
 <script>
 
 
+/* =====================================
+   ELEMENT
+===================================== */
+
 const camera =
-    document.getElementById("camera");
+    document.getElementById(
+        "camera"
+    );
+
+
+const photoArea =
+    document.getElementById(
+        "photoArea"
+    );
 
 
 const photo =
-    document.getElementById("photo");
+    document.getElementById(
+        "photo"
+    );
 
 
 const canvas =
-    document.getElementById("canvas");
+    document.getElementById(
+        "canvas"
+    );
 
 
 const cameraBtn =
-    document.getElementById("cameraBtn");
+    document.getElementById(
+        "cameraBtn"
+    );
 
 
-const buttons =
-    document.getElementById("buttons");
+const backBtn =
+    document.getElementById(
+        "backBtn"
+    );
 
 
 const loading =
-    document.getElementById("loading");
+    document.getElementById(
+        "loading"
+    );
 
+
+/* =====================================
+   BIẾN
+===================================== */
 
 let stream = null;
 
@@ -288,22 +390,27 @@ let imageWidth = 0;
 
 let imageHeight = 0;
 
+let textItems = [];
 
-/* =========================================
+
+/* =====================================
    MỞ CAMERA
-========================================= */
+===================================== */
 
 async function openCamera() {
 
     try {
 
         stream =
-            await navigator.mediaDevices.getUserMedia({
+            await navigator
+            .mediaDevices
+            .getUserMedia({
 
                 video: {
 
                     facingMode: {
-                        ideal: "environment"
+                        ideal:
+                            "environment"
                     }
 
                 },
@@ -321,12 +428,16 @@ async function openCamera() {
             "block";
 
 
-        photo.style.display =
+        photoArea.style.display =
             "none";
 
 
-        buttons.innerHTML =
-            "";
+        backBtn.style.display =
+            "none";
+
+
+        cameraBtn.style.display =
+            "block";
 
 
     }
@@ -337,7 +448,8 @@ async function openCamera() {
 
         alert(
             "Không thể mở camera.\n\n" +
-            "Hãy cho phép trình duyệt sử dụng camera."
+            "Hãy cho phép trình duyệt " +
+            "sử dụng camera."
         );
 
     }
@@ -345,9 +457,9 @@ async function openCamera() {
 }
 
 
-/* =========================================
+/* =====================================
    DỪNG CAMERA
-========================================= */
+===================================== */
 
 function stopCamera() {
 
@@ -359,7 +471,9 @@ function stopCamera() {
     stream
         .getTracks()
         .forEach(track => {
+
             track.stop();
+
         });
 
 
@@ -368,18 +482,49 @@ function stopCamera() {
 }
 
 
-/* =========================================
+/* =====================================
+   XÓA VÙNG CHỮ CŨ
+===================================== */
+
+function clearTextItems() {
+
+    textItems.forEach(item => {
+
+        if (item.highlight) {
+
+            item.highlight.remove();
+
+        }
+
+
+        if (item.sound) {
+
+            item.sound.remove();
+
+        }
+
+    });
+
+
+    textItems = [];
+
+}
+
+
+/* =====================================
    CHỤP ẢNH
-========================================= */
+===================================== */
 
 async function takePhoto() {
 
     if (!stream) {
+
         return;
+
     }
 
 
-    /* Kích thước ảnh */
+    /* Kích thước camera */
 
     imageWidth =
         camera.videoWidth;
@@ -398,29 +543,29 @@ async function takePhoto() {
 
 
     const ctx =
-        canvas.getContext("2d");
+        canvas.getContext(
+            "2d"
+        );
 
 
-    /*
-     * Chụp đúng hình camera
-     */
+    /* Chụp */
 
     ctx.drawImage(
 
         camera,
 
         0,
+
         0,
 
         imageWidth,
+
         imageHeight
 
     );
 
 
-    /*
-     * Lưu ảnh
-     */
+    /* Tạo ảnh */
 
     const image =
         canvas.toDataURL(
@@ -429,38 +574,37 @@ async function takePhoto() {
         );
 
 
-    /*
-     * Dừng camera
-     */
+    /* Dừng camera */
 
     stopCamera();
 
 
-    /*
-     * Hiện hình đã chụp
-     */
+    /* Hiện ảnh */
 
     photo.src =
         image;
 
-    photo.style.display =
+
+    photoArea.style.display =
         "block";
+
 
     camera.style.display =
         "none";
 
 
-    /*
-     * Xóa loa cũ
-     */
-
-    buttons.innerHTML =
-        "";
+    backBtn.style.display =
+        "block";
 
 
-    /*
-     * OCR
-     */
+    cameraBtn.style.display =
+        "none";
+
+
+    clearTextItems();
+
+
+    /* OCR */
 
     loading.style.display =
         "block";
@@ -471,18 +615,22 @@ async function takePhoto() {
 }
 
 
-/* =========================================
+/* =====================================
    OCR
-========================================= */
+===================================== */
 
 async function recognizeText(image) {
 
     try {
 
         const worker =
-            await Tesseract.createWorker(
+            await Tesseract
+            .createWorker(
+
                 "vie",
+
                 1,
+
                 {
 
                     logger: info => {
@@ -494,9 +642,14 @@ async function recognizeText(image) {
 
                             const percent =
                                 Math.round(
-                                    (info.progress || 0)
-                                    * 100
+
+                                    (
+                                        info.progress
+                                        || 0
+                                    ) * 100
+
                                 );
+
 
                             loading.innerText =
                                 "⏳ Nhận diện " +
@@ -508,6 +661,7 @@ async function recognizeText(image) {
                     }
 
                 }
+
             );
 
 
@@ -525,7 +679,7 @@ async function recognizeText(image) {
 
 
         /*
-         * Lấy các dòng chữ
+         * Các dòng chữ
          */
 
         const lines =
@@ -543,7 +697,7 @@ async function recognizeText(image) {
 
 
         /*
-         * Tạo loa cho từng dòng
+         * Tạo vùng chữ
          */
 
         lines.forEach(line => {
@@ -557,27 +711,23 @@ async function recognizeText(image) {
             }
 
 
-            /*
-             * Tọa độ chữ trong ảnh
-             */
+            createTextItem(
 
-            const bbox =
-                line.bbox;
-
-
-            createSoundButton(
                 text,
-                bbox
+
+                line.bbox
+
             );
 
         });
 
 
         /*
-         * Đặt vị trí loa
+         * Đặt vị trí
          */
 
-        positionButtons();
+        positionTextItems();
+
 
     }
 
@@ -593,124 +743,224 @@ async function recognizeText(image) {
 }
 
 
-/* =========================================
-   TẠO NÚT LOA
-========================================= */
+/* =====================================
+   TẠO VÙNG CHỮ + LOA
+===================================== */
 
-function createSoundButton(
+function createTextItem(
     text,
     bbox
 ) {
 
-    const button =
+
+    /*
+     * VÙNG TÔ CHỮ
+     */
+
+    const highlight =
+        document.createElement(
+            "div"
+        );
+
+
+    highlight.className =
+        "textHighlight";
+
+
+    highlight.dataset.x1 =
+        bbox.x0;
+
+
+    highlight.dataset.y1 =
+        bbox.y0;
+
+
+    highlight.dataset.x2 =
+        bbox.x1;
+
+
+    highlight.dataset.y2 =
+        bbox.y1;
+
+
+    photoArea.appendChild(
+        highlight
+    );
+
+
+    /*
+     * NÚT LOA
+     */
+
+    const sound =
         document.createElement(
             "button"
         );
 
 
-    button.className =
+    sound.className =
         "soundBtn";
 
 
-    button.innerText =
+    sound.innerText =
         "🔊";
 
 
-    /*
-     * Lưu tọa độ chữ
-     */
-
-    button.dataset.left =
+    sound.dataset.x =
         bbox.x1;
 
-    button.dataset.top =
-        bbox.y0;
 
-    button.dataset.right =
-        bbox.x1;
-
-    button.dataset.bottom =
-        bbox.y1;
+    sound.dataset.y =
+        (
+            bbox.y0 +
+            bbox.y1
+        ) / 2;
 
 
     /*
-     * Khi bấm loa
+     * BẤM LOA
      */
 
-    button.onclick = (
-        event
-    ) => {
+    sound.onclick =
+        function(event) {
 
-        event.stopPropagation();
-
-
-        /*
-         * Dừng câu đang đọc
-         */
-
-        speechSynthesis.cancel();
+            event.stopPropagation();
 
 
-        /*
-         * Tạo giọng đọc
-         */
+            /*
+             * Dừng giọng trước
+             */
 
-        const speech =
-            new SpeechSynthesisUtterance(
-                text
+            speechSynthesis.cancel();
+
+
+            /*
+             * Xóa trạng thái đọc
+             * của tất cả dòng
+             */
+
+            textItems.forEach(
+                item => {
+
+                    item.highlight
+                        .classList
+                        .remove(
+                            "reading"
+                        );
+
+                }
             );
 
 
-        /*
-         * Luôn đọc tiếng Việt
-         */
+            /*
+             * Tô vàng dòng
+             * đang đọc
+             */
 
-        speech.lang =
-            "vi-VN";
-
-
-        speech.rate =
-            0.9;
+            highlight.classList.add(
+                "reading"
+            );
 
 
-        speech.pitch =
-            1;
+            /*
+             * Tạo giọng đọc
+             */
+
+            const speech =
+                new SpeechSynthesisUtterance(
+                    text
+                );
 
 
-        /*
-         * Đọc
-         */
+            /*
+             * Tiếng Việt
+             */
 
-        speechSynthesis.speak(
-            speech
-        );
-
-    };
+            speech.lang =
+                "vi-VN";
 
 
-    buttons.appendChild(
-        button
+            speech.rate =
+                0.9;
+
+
+            speech.pitch =
+                1;
+
+
+            /*
+             * Khi đọc xong
+             */
+
+            speech.onend =
+                function() {
+
+                    highlight
+                        .classList
+                        .remove(
+                            "reading"
+                        );
+
+                };
+
+
+            /*
+             * Đọc
+
+             */
+
+            speechSynthesis.speak(
+                speech
+            );
+
+        };
+
+
+    photoArea.appendChild(
+        sound
     );
+
+
+    /*
+     * Lưu lại
+     */
+
+    textItems.push({
+
+        text:
+            text,
+
+        bbox:
+            bbox,
+
+        highlight:
+            highlight,
+
+        sound:
+            sound
+
+    });
 
 }
 
 
-/* =========================================
-   ĐẶT LOA ĐÚNG VỊ TRÍ CHỮ
-========================================= */
+/* =====================================
+   ĐẶT VỊ TRÍ VÙNG CHỮ
+===================================== */
 
-function positionButtons() {
+function positionTextItems() {
+
 
     const screenWidth =
         window.innerWidth;
+
 
     const screenHeight =
         window.innerHeight;
 
 
     /*
-     * Tính cách ảnh được hiển thị
-     * với object-fit: contain
+     * Ảnh object-fit: contain
      */
 
     const scale =
@@ -725,192 +975,258 @@ function positionButtons() {
         );
 
 
-    /*
-     * Kích thước ảnh thực tế trên màn hình
-     */
-
     const displayedWidth =
-        imageWidth * scale;
+        imageWidth *
+        scale;
+
 
     const displayedHeight =
-        imageHeight * scale;
+        imageHeight *
+        scale;
 
 
     /*
-     * Khoảng trống hai bên
+     * Khoảng trống
      */
 
     const offsetX =
-        (screenWidth -
-            displayedWidth) / 2;
+        (
+            screenWidth -
+            displayedWidth
+        ) / 2;
 
-
-    /*
-     * Khoảng trống trên dưới
-     */
 
     const offsetY =
-        (screenHeight -
-            displayedHeight) / 2;
+        (
+            screenHeight -
+            displayedHeight
+        ) / 2;
 
 
     /*
-     * Lấy tất cả loa
+     * Đặt từng dòng
      */
 
-    const soundButtons =
-        document.querySelectorAll(
-            ".soundBtn"
-        );
+    textItems.forEach(item => {
 
 
-    soundButtons.forEach(button => {
+        const bbox =
+            item.bbox;
 
+
+        /*
+         * Tọa độ vùng chữ
+         */
 
         const left =
-            parseFloat(
-                button.dataset.left
-            );
+            offsetX +
+            bbox.x0 *
+            scale;
 
 
         const top =
-            parseFloat(
-                button.dataset.top
-            );
+            offsetY +
+            bbox.y0 *
+            scale;
 
 
-        const right =
-            parseFloat(
-                button.dataset.right
-            );
+        const width =
+            (
+                bbox.x1 -
+                bbox.x0
+            ) *
+            scale;
 
 
-        const bottom =
-            parseFloat(
-                button.dataset.bottom
-            );
+        const height =
+            (
+                bbox.y1 -
+                bbox.y0
+            ) *
+            scale;
 
 
         /*
-         * Vị trí bên phải đoạn chữ
+         * VÙNG TÔ
          */
 
-        let x =
+        item.highlight.style.left =
+            left + "px";
+
+
+        item.highlight.style.top =
+            top + "px";
+
+
+        item.highlight.style.width =
+            width + "px";
+
+
+        item.highlight.style.height =
+            height + "px";
+
+
+        /*
+         * LOA
+         */
+
+        let soundX =
             offsetX +
-            right * scale +
+            bbox.x1 *
+            scale +
             8;
 
 
-        /*
-         * Vị trí giữa dòng chữ
-         */
-
-        let y =
+        let soundY =
             offsetY +
-            ((top + bottom) / 2)
-            * scale -
+            (
+                (
+                    bbox.y0 +
+                    bbox.y1
+                ) / 2
+            ) *
+            scale -
             24;
 
 
         /*
-         * Nếu loa bị ra ngoài màn hình
-         * thì đưa vào trong
+         * Nếu loa vượt bên phải
          */
 
         if (
-            x + 48 >
+            soundX + 48 >
             screenWidth
         ) {
 
-            x =
+            soundX =
                 offsetX +
-                left * scale -
+                bbox.x0 *
+                scale -
                 56;
 
         }
 
 
-        if (x < 5) {
-            x = 5;
+        /*
+         * Giữ loa trong màn hình
+         */
+
+        if (soundX < 5) {
+
+            soundX = 5;
+
         }
 
 
-        if (y < 5) {
-            y = 5;
+        if (soundY < 5) {
+
+            soundY = 5;
+
         }
 
 
         if (
-            y + 48 >
+            soundY + 48 >
             screenHeight
         ) {
 
-            y =
+            soundY =
                 screenHeight -
                 53;
 
         }
 
 
-        button.style.left =
-            x + "px";
+        item.sound.style.left =
+            soundX + "px";
 
 
-        button.style.top =
-            y + "px";
+        item.sound.style.top =
+            soundY + "px";
 
     });
 
 }
 
 
-/* =========================================
-   BẤM NÚT CAMERA
-========================================= */
+/* =====================================
+   NÚT CAMERA
+===================================== */
 
-cameraBtn.onclick = async () => {
+cameraBtn.onclick =
+    async function() {
 
 
-    /*
-     * Nếu chưa mở camera
-     * thì mở camera
-     */
+        /*
+         * Chưa mở camera
+         */
 
-    if (!stream) {
+        if (!stream) {
+
+            await openCamera();
+
+            return;
+
+        }
+
+
+        /*
+         * Đang mở camera
+         * => CHỤP
+         */
+
+        await takePhoto();
+
+    };
+
+
+/* =====================================
+   QUAY LẠI
+===================================== */
+
+backBtn.onclick =
+    async function() {
+
+
+        /*
+         * Dừng đọc
+         */
+
+        speechSynthesis.cancel();
+
+
+        /*
+         * Xóa vùng chữ
+         */
+
+        clearTextItems();
+
+
+        /*
+         * Mở camera lại
+         */
 
         await openCamera();
 
-        return;
-
-    }
+    };
 
 
-    /*
-     * Nếu camera đang mở
-     * thì chụp
-     */
-
-    await takePhoto();
-
-};
-
-
-/* =========================================
-   XOAY / THAY ĐỔI KÍCH THƯỚC MÀN HÌNH
-========================================= */
+/* =====================================
+   XOAY MÀN HÌNH
+===================================== */
 
 window.addEventListener(
     "resize",
-    () => {
+    function() {
 
         if (
             imageWidth &&
             imageHeight &&
-            photo.style.display !==
+            photoArea.style.display !==
             "none"
         ) {
 
-            positionButtons();
+            positionTextItems();
 
         }
 
